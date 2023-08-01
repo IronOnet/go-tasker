@@ -1,46 +1,23 @@
 version: '3.9'
 services:
 
-  postgres:
-    container_name: postgres
-    image: postgres
-    volumes:
-      - pg-data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_USER: 'user'
-      POSTGRES_PASSWORD: 'pass'
-      POSTGRES_DB: 'postgres'
-    ports:
-      - 5432:5432
+  mongo: 
+    image: mongo 
+    restart: always 
+    environment: 
+      MONGO_INITDB_ROOT_USERNAME: admin 
+      MONGO_INITDB_ROOT_PASSWORD: password123 
+    ports: 
+      "270017": "27017" 
+    volumes: 
+      -mongodb-data:/data/db 
 
-  rabbitmq:
-    container_name: rabbitmq
-    image: rabbitmq:3.8.12-management
-    ports:
-      - 5672:5672
-      - 15672:15672
+  tasker: 
+    build: . 
+    command: ["./tasker"] 
+    volumes: 
+      - "./data:/app/data" 
+    depends_on: 
+      - mongodb 
 
-  app:
-    build: .
-    container_name: app
-    image: app
-    environment:
-      PG_URL: 'postgres://user:pass@postgres:5432/postgres'
-      RMQ_URL: 'amqp://guest:guest@rabbitmq:5672/'
-    ports:
-      - 8080:8080
-    depends_on:
-      - postgres
-      - rabbitmq
-
-  integration:
-    build:
-      context: .
-      dockerfile: integration-test/Dockerfile
-    container_name: integration
-    image: integration
-    depends_on:
-      - app
-
-volumes:
-  pg-data:
+    
